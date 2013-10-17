@@ -472,13 +472,16 @@ void cloudfs_verify_ssl(int vrfy)
 
 static struct {
   char username[MAX_HEADER_SIZE], password[MAX_HEADER_SIZE],
-      tenant[MAX_HEADER_SIZE], authurl[MAX_URL_SIZE], region[MAX_URL_SIZE],
-      use_snet, auth_version;
+    tenant[MAX_HEADER_SIZE], authurl[MAX_URL_SIZE], region[MAX_URL_SIZE],
+    use_snet, auth_version, endpoint[MAX_URL_SIZE], token[MAX_HEADER_SIZE];
 } reconnect_args;
 
 void cloudfs_set_credentials(char *username, char *tenant, char *password,
-                             char *authurl, char *region, int use_snet)
+                             char *authurl, char *region, int use_snet,
+                             char *endpoint, char *token)
 {
+  strncpy(reconnect_args.endpoint, endpoint, sizeof(reconnect_args.endpoint));
+  strncpy(reconnect_args.token, token, sizeof(reconnect_args.token));
   strncpy(reconnect_args.username, username, sizeof(reconnect_args.username));
   strncpy(reconnect_args.tenant, tenant, sizeof(reconnect_args.tenant));
   strncpy(reconnect_args.password, password, sizeof(reconnect_args.password));
@@ -505,6 +508,12 @@ int cloudfs_connect()
   char postdata[8192] = "";
   xmlNode *top_node = NULL, *service_node = NULL, *endpoint_node = NULL;
   xmlParserCtxtPtr xmlctx = NULL;
+
+  if(reconnect_args.token[0] != '\0' && reconnect_args.endpoint[0] != '\0') {
+    strncpy(storage_token, reconnect_args.token, sizeof(storage_token));
+    strncpy(storage_url, reconnect_args.endpoint, sizeof(storage_url));
+    return 1;
+  }
 
   pthread_mutex_lock(&pool_mut);
 

@@ -433,6 +433,8 @@ static struct options {
     char region[OPTION_SIZE];
     char use_snet[OPTION_SIZE];
     char verify_ssl[OPTION_SIZE];
+  char endpoint[OPTION_SIZE];
+  char token[OPTION_SIZE];
 } options = {
     .username = "",
     .password = "",
@@ -442,6 +444,8 @@ static struct options {
     .region = "",
     .use_snet = "false",
     .verify_ssl = "true",
+    .endpoint = "",
+    .token = ""
 };
 
 int parse_option(void *data, const char *arg, int key, struct fuse_args *outargs)
@@ -454,7 +458,9 @@ int parse_option(void *data, const char *arg, int key, struct fuse_args *outargs
       sscanf(arg, " authurl = %[^\r\n ]", options.authurl) ||
       sscanf(arg, " region = %[^\r\n ]", options.region) ||
       sscanf(arg, " use_snet = %[^\r\n ]", options.use_snet) ||
-      sscanf(arg, " verify_ssl = %[^\r\n ]", options.verify_ssl))
+      sscanf(arg, " verify_ssl = %[^\r\n ]", options.verify_ssl) ||
+      sscanf(arg, " endpoint = %[^\r\n ]", options.endpoint) ||
+      sscanf(arg, " token = %[^\r\n ]", options.token))
     return 0;
   if (!strcmp(arg, "-f") || !strcmp(arg, "-d") || !strcmp(arg, "debug"))
     cloudfs_debug(1);
@@ -504,7 +510,8 @@ int main(int argc, char **argv)
 
   cloudfs_set_credentials(options.username, options.tenant, options.password,
                           options.authurl, options.region,
-                          !strcasecmp(options.use_snet, "true"));
+                          !strcasecmp(options.use_snet, "true"),
+                          options.endpoint, options.token);
   if (!cloudfs_connect())
   {
     fprintf(stderr, "Failed to authenticate.\n");
